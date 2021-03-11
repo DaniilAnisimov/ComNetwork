@@ -1,0 +1,202 @@
+        .footer-bs {
+            position: absolute;
+            width: 100%;
+            background-color: #3c3d41;
+            background-image: url('Images/bg-index2.jpg');
+            background-size: cover;
+            padding: 60px 40px;
+            height: auto;
+            color: white;
+        }
+
+            .footer-bs .footer-brand, .footer-bs .footer-nav, .footer-bs .footer-social, .footer-bs .footer-ns {
+                padding: 10px 25px;
+            }
+
+            .footer-bs .footer-nav, .footer-bs .footer-social, .footer-bs .footer-ns {
+                border-color: transparent;
+            }
+
+        footer-bs footer-brand {
+            margin: 0px 0px 10px;
+        }
+
+        .footer-bs .footer-brand {
+            font-size: 12px;
+            color: white;
+        }
+
+        .footer-bs .footer-nav ul.pages {
+            list-style: none;
+            padding: 0px;
+        }
+
+            .footer-bs .footer-nav ul.pages li {
+                padding: 5px 0px;
+            }
+
+            .footer-bs .footer-nav ul.pages a {
+                color: white;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+
+                .footer-bs .footer-nav ul.pages a:hover {
+                    color: white;
+                    text-decoration: none;
+                }
+
+        .footer-bs .footer-nav h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .footer-bs .footer-nav ul.list {
+            list-style: none;
+            padding: 0px;
+        }
+
+            .footer-bs .footer-nav ul.list li {
+                padding: 5px 0px;
+            }
+
+            .footer-bs .footer-nav ul.list a {
+                color: rgba(255,255,255,0.80);
+            }
+
+                .footer-bs .footer-nav ul.list a:hover {
+                    color: white;
+                    text-decoration: none;
+                }
+
+        .footer-bs .footer-social ul {
+            list-style: none;
+            padding: 0px;
+        }
+
+        .footer-bs .footer-social h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .footer-bs .footer-social li {
+            padding: 5px 4px;
+        }
+
+        .footer-bs .footer-social a {
+            color: white;
+        }
+
+            .footer-bs .footer-social a:hover {
+                color: white;
+                text-decoration: none;
+            }
+
+        .footer-bs .footer-ns h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .footer-bs .footer-ns p {
+            font-size: 12px;
+            color: white;
+        }
+
+        textarea {
+            display: inline-block;
+            color: black;
+            padding: .5em 1em;
+            border: 2px solid;
+            border-radius: 3px;
+            transition: 0.2s;
+            resize: none;
+            width: 100%;
+        }
+
+        #countdown {
+            width: 100%;
+            text-align: center;
+        }
+
+        .countdown {
+            font-family: sans-serif;
+            color: #ffffe0;
+            display: inline-block;
+            font-weight: 100;
+            text-align: center;
+            font-size: 30px;
+        }
+
+        .countdown-number {
+            padding: 10px;
+            border-radius: 3px;
+            background: #3c3d41;
+            display: inline-block;
+        }
+
+        .countdown-time {
+            padding: 15px;
+            border-radius: 3px;
+            background-color: #808080;
+            display: inline-block;
+        }
+
+        .countdown-text {
+            display: block;
+            padding-top: 5px;
+            color: #ffffe0;
+            font-size: 16px;
+        }
+
+.navbar {
+ background: white;
+}
+
+.nav-link, .navbar-brand {
+ color: #B9E2E4;
+ cursor: pointer;
+}
+
+.navbar-brand {
+    margin-left: 1em !important;
+}
+
+.nav-link {
+   font-size: 18px;
+   margin-right: 1em !important;
+}
+
+.nav-link:hover {
+ background: #;
+}
+
+.navbar-collapse {
+ //justify-content: flex-end;
+}
+
+.navbar-toggler {
+  background:#fff !important;
+}
+
+.navbar-collapse {
+ justify-content: flex-end;
+}
+
+.bg-dark {
+background-color:#343a40!important
+}
+
+.bg-primary {
+background-color:#343a40!important
+}
+
+.main-content {
+    background-color: pink;
+    border: solid 3px red;
+    border-radius: 5px;
+}
