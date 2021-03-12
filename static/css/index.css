@@ -196,7 +196,11 @@ background-color:#343a40!important
 }
 
 .main-content {
-    background-color: pink;
-    border: solid 3px red;
+    background-color: #EDEEF0;
+}
+
+.post {
+    background-color: #fff;
+    border: solid gray 2px;
     border-radius: 5px;
 }
