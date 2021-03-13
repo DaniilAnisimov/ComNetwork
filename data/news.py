@@ -18,4 +18,4 @@ class News(SqlAlchemyBase):
     date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now())
 
     user = orm.relation("User")
-    comments = orm.relation("Comments", back_populates="news")
+    comments = orm.relation("Comment", back_populates="news")

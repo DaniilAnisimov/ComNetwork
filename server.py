@@ -1,6 +1,12 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
+from forms.user import RegisterForm
+from data import db_session
+from data.users import User
+from re import *
+from main import main
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = "123"  # in json
 
 
 @app.route('/')
@@ -30,9 +36,28 @@ def logout():
     return "logout"
 
 
-@app.route("/register")
+@app.route("/register", methods=['GET', 'POST'])
 def register():
-    return 'register'
+    form = RegisterForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if db_sess.query(User).filter(User.name == form.name.data).first():
+            return render_template("register.html", form=form, message="Имя пользователя занято")
+        pattern = compile("(^|\s)[-a-z0-9_.]+@([-a-z0-9]+\.)+[a-z]{2,6}(\s|$)")
+        if not pattern.match(form.email.data):
+            return render_template('register.html', form=form, message="Почта не действительна")
+        if db_sess.query(User).filter(User.address == form.email.data).first():
+            return render_template('register.html', form=form, message="Пользователь с этой почтой уже зарегистрирован")
+        if form.password.data != form.password_again.data:
+            return render_template("register.html", form=form, message="Пароли не совпадают")
+        user = User(name=form.name.data,
+                    address=form.email.data,
+                    about=form.about.data)
+        user.set_password(form.password.data)
+        db_sess.add(user)
+        db_sess.commit()
+        return redirect('/index')
+    return render_template("register.html", form=form)
 
 
 @app.route("/create_post")
@@ -49,4 +74,5 @@ def save_offers():
 
 
 if __name__ == "__main__":
+    main()
     app.run(port=8080, host='127.0.0.1')
