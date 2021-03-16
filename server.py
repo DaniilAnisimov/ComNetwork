@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect
 from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_mail import Message, Mail
 
 from forms.user import RegisterForm
 from forms.login import LoginForm
@@ -14,6 +15,16 @@ from re import *
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "123"  # in json
+
+app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = "comnetwork@bk.ru"
+app.config['MAIL_DEFAULT_SENDER'] = "comnetwork@bk.ru"
+app.config['MAIL_PASSWORD'] = 'dodgefromblocks'
+
+mail = Mail(app)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -36,9 +47,11 @@ def index():
                                                         'длиной волны от 100 до 10^-3 нм'}   # Словарь постов из бд
 
     # если пользователь залогинился
-    return render_template("index.html", user=user_from_db, list_with_posts=list_with_posts_from_db, is_login='true')
+    #return render_template("index.html", user=user_from_db, list_with_posts=list_with_posts_from_db,
+    #                       is_login='true', styles='index')
     # если пользователь не залогинился
-    return render_template("index.html", list_of_posts=list_of_posts_from_db, is_login='false')
+    return render_template("index.html", list_with_posts=list_with_posts_from_db, is_login='false',
+                           styles='index')
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -59,8 +72,10 @@ def login():
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
         return render_template("login.html", message="Неправильный логин или пароль",
-                               form=form, user=user_from_db, list_with_posts=list_with_posts_from_db, is_login='true')
-    return render_template("login.html", form=form, user=user_from_db, list_with_posts=list_with_posts_from_db, is_login='true')
+                               form=form, user=user_from_db, list_with_posts=list_with_posts_from_db,
+                               is_login='false', title='ComNetwork | Авторизация')
+    return render_template("login.html", form=form, user=user_from_db, list_with_posts=list_with_posts_from_db,
+                           is_login='false', title='ComNetwork | Авторизация')
 
 
 @app.route('/logout')
@@ -91,7 +106,7 @@ def register():
         db_sess.add(user)
         db_sess.commit()
         return redirect('/index')
-    return render_template("register.html", form=form)
+    return render_template("register.html", form=form, title='ComNetwork')
 
 
 @app.route("/create_post")
@@ -102,9 +117,10 @@ def create_post():
 @app.route("/save_offers", methods=['post', 'get'])
 def save_offers():
     if request.method == 'POST':
-        print(request.form.get('message'))   # Предложения с футера, потом будем где-нибудь сохранять
-
-    return "Ваше предложение принято"
+        msg = Message("Recommendations", sender=app.config['MAIL_USERNAME'], recipients=[app.config['MAIL_USERNAME']])
+        msg.body = f"<h1>{request.form.get('message')}</h1>"
+        mail.send(msg)
+    return redirect('/index')
 
 
 if __name__ == "__main__":
