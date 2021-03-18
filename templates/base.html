@@ -36,12 +36,13 @@
             <ul class="navbar-nav mr-4">
                 <li><a class="nav-link" href="#">Посты</a></li>
                 <li><a class="nav-link" href="#">Новые</a></li>
+                {% if current_user.is_authenticated %}
                 <li><a class="nav-link" href="{{ url_for('create_post') }}">Написать пост</a></li>
-                {% if is_login == "false" %}
-                <li><a class="nav-link" href="{{ url_for('login') }}">Войти</a></li>
-                {% else %}
-                <li><p class="nav-link">{{ user["nickname"] }}</p></li>
+                <li><p class="nav-link">{{ current_user.name }}</p></li>
                 <li><a class="nav-link" href="{{ url_for('logout') }}">Выйти</a></li>
+                {% else %}
+                <li><a class="nav-link" href="{{ url_for('login') }}">Войти</a></li>
+                <li><a class="nav-link" href="{{ url_for('register') }}">Зарегистрироваться </a></li>
                 {% endif %}
             </ul>
         </div>

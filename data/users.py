@@ -11,11 +11,11 @@ class User(SqlAlchemyBase, UserMixin):
     __tablename__ = "users"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, index=True)
-    name = sqlalchemy.Column(sqlalchemy.String, unique=True)
+    name = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=False)
     about = sqlalchemy.Column(sqlalchemy.String)
     rating = sqlalchemy.Column(sqlalchemy.Integer, default=0)
-    address = sqlalchemy.Column(sqlalchemy.String, unique=True)
-    password = sqlalchemy.Column(sqlalchemy.String)
+    address = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=False)
+    password = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now())
     banned = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
 

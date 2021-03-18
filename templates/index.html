@@ -1,49 +1,67 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container">
-        <div class="row">
-            <div class="container col-lg-12 col-md-12 col-sm-12" style="padding: 80px 0;">
-                <div class="row">
-                    <div id="countdown" class="countdown">
-                        <h3 style="color: #ffffe0;">До 12 апреля осталось:</h3>
-                        <div>
-                            <div class="countdown-number">
-                                <span class="days countdown-time"></span>
-                                <span class="countdown-text">Days</span>
-                            </div>
-                            <div class="countdown-number">
-                                <span class="hours countdown-time"></span>
-                                <span class="countdown-text">Hours</span>
-                            </div>
-                            <div class="countdown-number">
-                                <span class="minutes countdown-time"></span>
-                                <span class="countdown-text">Minutes</span>
-                            </div>
-                            <div class="countdown-number">
-                                <span class="seconds countdown-time"></span>
-                                <span class="countdown-text">Seconds</span>
-                            </div>
+<div class="container">
+    <div class="row">
+        <div class="container col-lg-12 col-md-12 col-sm-12" style="padding: 80px 0;">
+            <div class="row">
+                <div id="countdown" class="countdown">
+                    <h3 style="color: #ffffe0;">До 12 апреля осталось:</h3>
+                    <div>
+                        <div class="countdown-number">
+                            <span class="days countdown-time"></span>
+                            <span class="countdown-text">Days</span>
+                        </div>
+                        <div class="countdown-number">
+                            <span class="hours countdown-time"></span>
+                            <span class="countdown-text">Hours</span>
+                        </div>
+                        <div class="countdown-number">
+                            <span class="minutes countdown-time"></span>
+                            <span class="countdown-text">Minutes</span>
+                        </div>
+                        <div class="countdown-number">
+                            <span class="seconds countdown-time"></span>
+                            <span class="countdown-text">Seconds</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="row main-content">
-            <div class="col-md-12 col-sm-12">
-                <div class="row">
-                    {% for item in list_with_posts %}
-                    <div class="col-md-4 col-sm-4 post">
-                        <p class="info">{{ item }}<p>
-                        <p>{{ list_with_posts[item] }}</p>
-                    </div>
-                    {% endfor %}
+    </div>
+    <div class="row main-content">
+        <div class="col-md-12 col-sm-12">
+            <div class="row">
+                {% if list_with_posts %}
+                {% for item in list_with_posts %}
+                <div class="col-md-4 col-sm-4 post">
+                    <p class="info">
+                    <h2>{{ item.name }}</h2>
+                    <p>
+                    <p>{{ item.text }}</p>
+                    <p>Автор поста: {{ item.user.name }}. Дата создания:
+                        {{ item.date.strftime('%H:%M %d-%m-%Y') }}</p>
+                    {% if current_user.is_authenticated and current_user.name == item.user.name %}
+                    <p>
+                        <a href="/edit_post/{{ item.id }}" class="btn btn-warning">
+                            Изменить
+                        </a>
+                        <a href="/post_delete/{{ item.id }}" class="btn btn-danger">
+                            Удалить
+                        </a>
+                    </p>
+                    {% endif %}
                 </div>
+                {% endfor %}
+                {% else %}
+                <h1 align="center">В данный момент список новостей пуст!</h1>
+                {% endif %}
             </div>
         </div>
     </div>
+</div>
 
-    <script>
+<script>
             function getTimeRemaining(endtime) {
                 var t = Date.parse(endtime) - Date.parse(new Date());
                 var seconds = Math.floor((t / 1000) % 60);
@@ -85,5 +103,6 @@
 
             var deadline = "April 12 2021 00:00:00 GMT+0400";
             initializeClock('countdown', deadline);
+
 </script>
 {% endblock %}

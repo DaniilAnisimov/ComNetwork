@@ -1,17 +1,16 @@
-from flask import Flask, render_template, request, redirect
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask import Flask, render_template, request, redirect, abort
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_mail import Message, Mail
 
 from forms.user import RegisterForm
 from forms.login import LoginForm
-
-from main import main
+from forms.create_post import CreatePost
 
 from data import db_session
 from data.users import User
+from data.news import News
 
 from re import *
-
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "123"  # in json
@@ -38,32 +37,13 @@ def load_user(user_id):
 @app.route('/')
 @app.route('/index')
 def index():
-    user_from_db = {'nickname': 'Саня'}   # данные о залогиненном пользователе отправятся на представление
-    list_with_posts_from_db = {"ультрафиолетовое излучение": "λ < 380нм",
-                             "Инфракрасное излучение": "λ > 760нм",
-                             "Гамма излучение": "λ = 2 * 10^-10нм и прочее описание",
-                             "Рентгеновское излучение": 'Рентгеновское излучение - '
-                                                        'электромагнитные волны с '
-                                                        'длиной волны от 100 до 10^-3 нм'}   # Словарь постов из бд
-
-    # если пользователь залогинился
-    #return render_template("index.html", user=user_from_db, list_with_posts=list_with_posts_from_db,
-    #                       is_login='true', styles='index')
-    # если пользователь не залогинился
-    return render_template("index.html", list_with_posts=list_with_posts_from_db, is_login='false',
-                           styles='index')
+    db_sess = db_session.create_session()
+    list_with_posts_from_db = db_sess.query(News).all()
+    return render_template("index.html", list_with_posts=list_with_posts_from_db, styles='index')
 
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
-    user_from_db = {'nickname': 'Саня'}  # данные о залогиненном пользователе отправятся на представление
-    list_with_posts_from_db = {"ультрафиолетовое излучение": "λ < 380нм",
-                               "Инфракрасное излучение": "λ > 760нм",
-                               "Гамма излучение": "λ = 2 * 10^-10нм и прочее описание",
-                               "Рентгеновское излучение": 'Рентгеновское излучение - '
-                                                          'электромагнитные волны с '
-                                                          'длиной волны от 100 до 10^-3 нм'}  # Словарь постов из бд
-
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -72,10 +52,8 @@ def login():
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
         return render_template("login.html", message="Неправильный логин или пароль",
-                               form=form, user=user_from_db, list_with_posts=list_with_posts_from_db,
-                               is_login='false', title='ComNetwork | Авторизация')
-    return render_template("login.html", form=form, user=user_from_db, list_with_posts=list_with_posts_from_db,
-                           is_login='false', title='ComNetwork | Авторизация')
+                               form=form, title='ComNetwork | Авторизация')
+    return render_template("login.html", form=form, title='ComNetwork | Авторизация')
 
 
 @app.route('/logout')
@@ -96,22 +74,76 @@ def register():
         if not pattern.match(form.email.data):
             return render_template('register.html', form=form, message="Почта не действительна")
         if db_sess.query(User).filter(User.address == form.email.data).first():
-            return render_template('register.html', form=form, message="Пользователь с этой почтой уже зарегистрирован")
+            return render_template('register.html', form=form,
+                                   message="Пользователь с этой почтой уже зарегистрирован")
         if form.password.data != form.password_again.data:
             return render_template("register.html", form=form, message="Пароли не совпадают")
-        user = User(name=form.name.data,
-                    address=form.email.data,
-                    about=form.about.data)
+        user = User()
+        user.name = form.name.data
+        user.address = form.email.data
+        user.about = form.about.data
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
-        return redirect('/index')
-    return render_template("register.html", form=form, title='ComNetwork')
+        return redirect('/')
+    return render_template("register.html", form=form, title='ComNetwork | Регистрация')
 
 
-@app.route("/create_post")
+@app.route("/create_post", methods=["POST", "GET"])
 def create_post():
-    return 'create-post'
+    form = CreatePost()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        news = News()
+        news.name = form.title.data
+        news.text = form.text.data
+        news.tags = form.tags.data
+        news.user_id = current_user.id
+        db_sess.add(news)
+        db_sess.commit()
+        return redirect('/')
+    else:
+        return render_template("сreate_post.html", form=form, title="ComNetwork | Создание нового поста")
+
+
+@app.route('/edit_post/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_news(id):
+    form = CreatePost()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        news = db_sess.query(News).filter(News.id == id, News.user_id == current_user.id).first()
+        if news:
+            form.title.data = news.name
+            form.text.data = news.text
+            form.tags.data = news.tags
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        news = db_sess.query(News).filter(News.id == id, News.user_id == current_user.id).first()
+        if news:
+            news.name = form.title.data
+            news.text = form.text.data
+            news.tags = form.tags.data
+            db_sess.commit()
+            return redirect('/')
+        else:
+            abort(404)
+    return render_template("сreate_post.html", form=form, title="ComNetwork | Редактирование поста")
+
+
+@app.route('/post_delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def post_delete(id):
+    db_sess = db_session.create_session()
+    news = db_sess.query(News).filter(News.id == id, News.user_id == current_user.id).first()
+    if news:
+        db_sess.delete(news)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect('/')
 
 
 @app.route("/save_offers", methods=['post', 'get'])
@@ -124,5 +156,5 @@ def save_offers():
 
 
 if __name__ == "__main__":
-    main()
+    db_session.global_init("db/collective_blog.db")
     app.run(port=8080, host='127.0.0.1')

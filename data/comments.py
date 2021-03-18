@@ -9,7 +9,7 @@ class Comment(SqlAlchemyBase):
     __tablename__ = "comments"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, index=True)
-    text = sqlalchemy.Column(sqlalchemy.String, unique=True)
+    text = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     rating = sqlalchemy.Column(sqlalchemy.Integer, default=0)
     user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
     news_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("news.id"))
