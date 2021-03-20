@@ -5,6 +5,7 @@ from flask_mail import Message, Mail
 from forms.user import RegisterForm
 from forms.login import LoginForm
 from forms.create_post import CreatePost
+import datetime
 
 from data import db_session
 from data.users import User
@@ -28,6 +29,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
+scheduledatelist = ['02-08', '03-20', '04-12']
+
+
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
@@ -39,7 +43,13 @@ def load_user(user_id):
 def index():
     db_sess = db_session.create_session()
     list_with_posts_from_db = db_sess.query(News).all()
-    return render_template("index.html", list_with_posts=list_with_posts_from_db, styles='index')
+    today = str(datetime.date.today())
+    list_time_to_view = list(reversed(scheduledatelist))
+    list_time_to_view = filter(lambda date: date[:2] > today[5:7], list_time_to_view)
+    time_before = today[:4] + '-' + min(list_time_to_view,
+                                key=lambda s: datetime.datetime.strptime(s, "%m-%d").date() - datetime.date.today())
+    return render_template("index.html", list_with_posts=list_with_posts_from_db, time_before=time_before,
+                           styles='index')
 
 
 @app.route('/login', methods=["GET", "POST"])
