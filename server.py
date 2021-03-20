@@ -29,7 +29,15 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
-scheduledatelist = ['02-08', '03-20', '04-12']
+scheduledatelist = ['02-08', '03-20', '04-12', '05-01', '09-08', '11-26']
+data_with_holiday = {
+    '02-08': 'День Российской науки',
+    '03-20': 'День Земли',
+    '04-12': 'День космонавтики',
+    '05-01': 'Праздник весны и труда',
+    '09-08': 'Международный день грамотности',
+    '11-26': 'Всемирный день информации'
+}
 
 
 @login_manager.user_loader
@@ -44,11 +52,12 @@ def index():
     db_sess = db_session.create_session()
     list_with_posts_from_db = db_sess.query(News).all()
     today = str(datetime.date.today())
-    list_time_to_view = list(reversed(scheduledatelist))
-    list_time_to_view = filter(lambda date: date[:2] > today[5:7], list_time_to_view)
-    time_before = today[:4] + '-' + min(list_time_to_view,
-                                key=lambda s: datetime.datetime.strptime(s, "%m-%d").date() - datetime.date.today())
-    return render_template("index.html", list_with_posts=list_with_posts_from_db, time_before=time_before,
+    list_time_to_view = list(filter(lambda date: date[:2] == today[5:7] and date[3:] > today[8:] or date[:2] > today[5:7], list(reversed(scheduledatelist))))
+    time_before = min(list_time_to_view, key=lambda s: datetime.datetime.strptime(s, "%m-%d").date() - datetime.date.today())
+    time_before = today[:4] + '-' + time_before, data_with_holiday[time_before]
+    return render_template("index.html",
+                           list_with_posts=list_with_posts_from_db,
+                           time_before=time_before,
                            styles='index')
 
 
