@@ -6,6 +6,7 @@ from forms.user import RegisterForm
 from forms.login import LoginForm
 from forms.create_post import CreatePost
 from forms.post import CommentForm
+import datetime
 
 from data import db_session
 from data.users import User
@@ -29,6 +30,17 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
+scheduledatelist = ['02-08', '03-20', '04-12', '05-01', '09-08', '11-26']
+data_with_holiday = {
+    '02-08': 'День Российской науки',
+    '03-20': 'День Земли',
+    '04-12': 'День космонавтики',
+    '05-01': 'Праздник весны и труда',
+    '09-08': 'Международный день грамотности',
+    '11-26': 'Всемирный день информации'
+}
+
+
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
@@ -40,7 +52,14 @@ def load_user(user_id):
 def index():
     db_sess = db_session.create_session()
     list_with_posts_from_db = db_sess.query(News).all()
-    return render_template("index.html", list_with_posts=list_with_posts_from_db, styles='index')
+    today = str(datetime.date.today())
+    list_time_to_view = list(filter(lambda date: date[:2] == today[5:7] and date[3:] > today[8:] or date[:2] > today[5:7], list(reversed(scheduledatelist))))
+    time_before = min(list_time_to_view, key=lambda s: datetime.datetime.strptime(s, "%m-%d").date() - datetime.date.today())
+    time_before = today[:4] + '-' + time_before, data_with_holiday[time_before]
+    return render_template("index.html",
+                           list_with_posts=list_with_posts_from_db,
+                           time_before=time_before,
+                           styles='index')
 
 
 @app.route('/login', methods=["GET", "POST"])

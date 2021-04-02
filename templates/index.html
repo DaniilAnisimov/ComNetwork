@@ -6,7 +6,7 @@
         <div class="container col-lg-12 col-md-12 col-sm-12" style="padding: 80px 0;">
             <div class="row">
                 <div id="countdown" class="countdown">
-                    <h3 style="color: #ffffe0;">До 12 апреля осталось:</h3>
+                    <h3 style="color: #ffffe0;">{{ time_before[1] }}:</h3>
                     <div>
                         <div class="countdown-number">
                             <span class="days countdown-time"></span>
@@ -100,7 +100,7 @@
                 var timeinterval = setInterval(updateClock, 1000);
             }
 
-            var deadline = "April 12 2021 00:00:00 GMT+0400";
+            var deadline = "{{ time_before[0] }}";
             initializeClock('countdown', deadline);
 
 
