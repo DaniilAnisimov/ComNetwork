@@ -5,22 +5,23 @@ from flask_mail import Message, Mail
 from forms.user import RegisterForm
 from forms.login import LoginForm
 from forms.create_post import CreatePost
+from forms.post import CommentForm
 
 from data import db_session
 from data.users import User
 from data.news import News
+from data.comments import Comment
+
+import json
 
 from re import *
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "123"  # in json
 
-app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = "comnetwork@bk.ru"
-app.config['MAIL_DEFAULT_SENDER'] = "comnetwork@bk.ru"
-app.config['MAIL_PASSWORD'] = 'dodgefromblocks'
+with open("settings.json") as file:
+    data = json.load(file)
+    for key, value in data.items():
+        app.config[key] = value
 
 mail = Mail(app)
 
@@ -139,6 +140,8 @@ def post_delete(id):
     db_sess = db_session.create_session()
     news = db_sess.query(News).filter(News.id == id, News.user_id == current_user.id).first()
     if news:
+        for comment in news.comments:
+            db_sess.delete(comment)
         db_sess.delete(news)
         db_sess.commit()
     else:
@@ -153,6 +156,25 @@ def save_offers():
         msg.body = f"<h1>{request.form.get('message')}</h1>"
         mail.send(msg)
     return redirect('/index')
+
+
+@app.route("/post/<int:id_post>", methods=['GET', 'POST'])
+def post(id_post):
+    form = CommentForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        comment = Comment()
+        comment.text = form.text.data
+        comment.user_id = current_user.id
+        comment.news_id = id_post
+        db_sess.add(comment)
+        db_sess.commit()
+        return redirect(f'/post/{id_post}')
+    db_sess = db_session.create_session()
+    _post = db_sess.query(News).filter(News.id == id_post).first()
+    if _post is None:
+        abort(404)
+    return render_template("post.html", form=form, title="ComNetwork", post=_post)
 
 
 if __name__ == "__main__":

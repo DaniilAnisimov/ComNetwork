@@ -36,8 +36,7 @@
                 {% for item in list_with_posts %}
                 <div class="col-md-4 col-sm-4 post">
                     <p class="info">
-                    <h2>{{ item.name }}</h2>
-                    <p>
+                    <h2><a href="/post/{{ item.id }}">{{ item.name }}</a></h2>
                     <p>{{ item.text }}</p>
                     <p>Автор поста: {{ item.user.name }}. Дата создания:
                         {{ item.date.strftime('%H:%M %d-%m-%Y') }}</p>
@@ -103,6 +102,7 @@
 
             var deadline = "April 12 2021 00:00:00 GMT+0400";
             initializeClock('countdown', deadline);
+
 
 </script>
 {% endblock %}
