@@ -2,7 +2,7 @@ import datetime
 import sqlalchemy
 from sqlalchemy import orm
 
-from .db_session import SqlAlchemyBase
+from data.db_session import SqlAlchemyBase
 
 
 class News(SqlAlchemyBase):
@@ -11,8 +11,7 @@ class News(SqlAlchemyBase):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, index=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     rating = sqlalchemy.Column(sqlalchemy.Integer, default=0)
-    text = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    photo = sqlalchemy.Column(sqlalchemy.String)
+    content = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
     banned = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now())

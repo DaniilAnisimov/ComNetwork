@@ -29,7 +29,6 @@ mail = Mail(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-
 scheduledatelist = ['02-08', '03-20', '04-12', '05-01', '09-08', '11-26']
 data_with_holiday = {
     '02-08': 'День Российской науки',
@@ -53,8 +52,11 @@ def index():
     db_sess = db_session.create_session()
     list_with_posts_from_db = db_sess.query(News).all()
     today = str(datetime.date.today())
-    list_time_to_view = list(filter(lambda date: date[:2] == today[5:7] and date[3:] > today[8:] or date[:2] > today[5:7], list(reversed(scheduledatelist))))
-    time_before = min(list_time_to_view, key=lambda s: datetime.datetime.strptime(s, "%m-%d").date() - datetime.date.today())
+    list_time_to_view = list(
+        filter(lambda date: date[:2] == today[5:7] and date[3:] > today[8:] or date[:2] > today[5:7],
+               list(reversed(scheduledatelist))))
+    time_before = min(list_time_to_view,
+                      key=lambda s: datetime.datetime.strptime(s, "%m-%d").date() - datetime.date.today())
     time_before = today[:4] + '-' + time_before, data_with_holiday[time_before]
     return render_template("index.html",
                            list_with_posts=list_with_posts_from_db,
@@ -67,7 +69,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.address == form.email.data).first()
+        user = db_sess.query(User).filter(User.email == form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
@@ -100,7 +102,7 @@ def register():
             return render_template("register.html", form=form, message="Пароли не совпадают")
         user = User()
         user.name = form.name.data
-        user.address = form.email.data
+        user.email = form.email.data
         user.about = form.about.data
         user.set_password(form.password.data)
         db_sess.add(user)
@@ -116,7 +118,7 @@ def create_post():
         db_sess = db_session.create_session()
         news = News()
         news.name = form.title.data
-        news.text = form.text.data
+        news.content = form.text.data
         news.tags = form.tags.data
         news.user_id = current_user.id
         db_sess.add(news)
@@ -135,7 +137,7 @@ def edit_news(id):
         news = db_sess.query(News).filter(News.id == id, News.user_id == current_user.id).first()
         if news:
             form.title.data = news.name
-            form.text.data = news.text
+            form.text.data = news.content
             form.tags.data = news.tags
         else:
             abort(404)
@@ -144,7 +146,7 @@ def edit_news(id):
         news = db_sess.query(News).filter(News.id == id, News.user_id == current_user.id).first()
         if news:
             news.name = form.title.data
-            news.text = form.text.data
+            news.content = form.text.data
             news.tags = form.tags.data
             db_sess.commit()
             return redirect('/')
@@ -183,7 +185,7 @@ def post(id_post):
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         comment = Comment()
-        comment.text = form.text.data
+        comment.content = form.text.data
         comment.user_id = current_user.id
         comment.news_id = id_post
         db_sess.add(comment)
