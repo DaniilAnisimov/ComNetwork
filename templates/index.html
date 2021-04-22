@@ -34,12 +34,12 @@
             <div class="row">
                 {% if list_with_posts %}
                 {% for item in list_with_posts %}
-                <div class="col-md-4 col-sm-4 post">
+                <div>
                     <p class="info">
-                    <h2><a href="/post/{{ item.id }}">{{ item.name }}</a></h2>
-                    <p>{{ item.text }}</p>
-                    <p>Автор поста: {{ item.user.name }}. Дата создания:
-                        {{ item.date.strftime('%H:%M %d-%m-%Y') }}</p>
+                    <h2><a href="/post/{{ item.id }}">{{ item["name"] }}</a></h2>
+                    <p>{{ item["content"] }}</p>
+                    <p>Автор поста: {{ item["user"]["name"] }}. Дата создания:
+                        {{ item.date }}</p>
                     {% if current_user.is_authenticated and current_user.name == item.user.name %}
                     <p>
                         <a href="/edit_post/{{ item.id }}" class="btn btn-warning">
