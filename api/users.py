@@ -55,6 +55,7 @@ put_parser.add_argument('password', required=False)
 put_parser.add_argument('last_password', required=False)
 put_parser.add_argument('rating', required=False, type=int)
 put_parser.add_argument('banned', required=False, type=bool)
+put_parser.add_argument('access_level', required=False, type=int)
 
 
 class UserResource(Resource):
@@ -67,7 +68,7 @@ class UserResource(Resource):
         if user.banned:
             return jsonify({"Error": {"message": "Этот пользователь был забанен"}})
         return jsonify({'user': user.to_dict(
-            only=('id', 'name', 'about', 'rating', 'email', 'date'))})
+            only=('id', 'name', 'about', 'rating', 'email', 'date', "access_level"))})
 
     def put(self, user_id, key):
         checking_api_key(key)
@@ -92,7 +93,6 @@ class UserResource(Resource):
                 return jsonify(cp)
             if not user.check_password(args["last_password"]):
                 return jsonify({"Error": {"message": "Пароли не совпадают"}})
-
         for key, value in args.items():
             if not (value is None):
                 if key == "about":
@@ -105,6 +105,8 @@ class UserResource(Resource):
                     user.banned = value
                 elif key == "rating":
                     user.rating = value
+                elif key == "access_level":
+                    user.access_level = value
 
         session.commit()
         return jsonify({'success': 'OK'})
@@ -142,7 +144,7 @@ class UserListResource(Resource):
         session = db_session.create_session()
         users = session.query(User).all()
         return jsonify({'users': [item.to_dict(
-            only=('id', 'name', 'about', 'rating', 'email', 'date')) for item in users if not item.banned]})
+            only=('id', 'name', 'about', 'rating', 'email', 'date', "access_level")) for item in users if not item.banned]})
 
     def post(self, key):
         checking_api_key(key)

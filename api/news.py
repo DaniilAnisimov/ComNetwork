@@ -46,11 +46,12 @@ class NewsResource(Resource):
             return jsonify({"Error": {"message": "Эта новость была забанена"}})
         information = {'news': news.to_dict(only=('id', 'name', 'rating', 'content', 'date', 'tags'))}
         user = news.user
-        information["news"]["user"] = {"id": user.id, "name": user.name}
+        information["news"]["user"] = {"id": user.id, "name": user.name, "email": user.email}
         comments = news.comments
         information["news"]["comments"] = [{
             "id": comment.id, "content": comment.content, "rating": comment.rating,
-            "user": {"id": comment.user_id, "name": comment.user.name}, "date": comment.date
+            "user": {"id": comment.user_id, "name": comment.user.name, "email": user.email},
+            "date": comment.date
         } for comment in comments if not comment.banned]
         return jsonify(information)
 
@@ -106,11 +107,12 @@ class NewsListResource(Resource):
         news = session.query(News).all()
         information = []
         for item in news:
-            inf = item.to_dict(only=('id', 'name', 'rating',
-                                     'content', 'user_id', 'date', 'tags'))
-            user = item.user
-            inf["user"] = {"id": user.id, "name": user.name}
-            information.append(inf)
+            if not item.banned:
+                inf = item.to_dict(only=('id', 'name', 'rating',
+                                         'content', 'user_id', 'date', 'tags'))
+                user = item.user
+                inf["user"] = {"id": user.id, "name": user.name, "email": user.email}
+                information.append(inf)
         return jsonify({'news': information})
 
     def post(self, key):

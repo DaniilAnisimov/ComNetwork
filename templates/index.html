@@ -40,13 +40,21 @@
                     <p>{{ item["content"] }}</p>
                     <p>Автор поста: {{ item["user"]["name"] }}. Дата создания:
                         {{ item.date }}</p>
-                    {% if current_user.is_authenticated and current_user.name == item.user.name %}
+                    {% if current_user.is_authenticated and (current_user.name == item["user"]["name"]
+                    or current_user.access_level == 1) %}
                     <p>
                         <a href="/edit_post/{{ item.id }}" class="btn btn-warning">
                             Изменить
                         </a>
                         <a href="/post_delete/{{ item.id }}" class="btn btn-danger">
                             Удалить
+                        </a>
+                    </p>
+                    {% endif %}
+                    {% if current_user.access_level == 1 or current_user.access_level == 2 %}
+                    <p>
+                        <a href="/block_it/news&{{ item.id }}" class="btn btn-danger">
+                            Заблокировать
                         </a>
                     </p>
                     {% endif %}
