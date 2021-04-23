@@ -16,7 +16,8 @@ class News(SqlAlchemyBase, SerializerMixin):
     user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
     banned = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now())
-    tags = sqlalchemy.Column(sqlalchemy.String)
+    category_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("categories.id"))
 
     user = orm.relation("User")
+    category = orm.relation("Category")
     comments = orm.relation("Comment", back_populates="news")

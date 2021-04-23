@@ -21,6 +21,8 @@ import smtplib
 
 from data import db_session
 from data.users import User
+from data import main
+from data.main import standard_categories
 
 import json
 
@@ -72,8 +74,11 @@ def load_user(user_id):
 
 @app.route('/')
 @app.route('/index')
-def index():
+@app.route('/index/<string:category>')
+def index(category=None):
     list_with_posts = get(f"{api_news}/{api_key}").json()["news"]
+    if not (category is None) and category in standard_categories:
+        list_with_posts = [_news for _news in list_with_posts if _news["category"] == category]
     today = str(datetime.date.today())
     list_time_to_view = list(
         filter(lambda date: date[:2] == today[5:7] and date[3:] > today[8:] or date[:2] > today[5:7],
@@ -84,7 +89,8 @@ def index():
     return render_template("index.html",
                            list_with_posts=list_with_posts,
                            time_before=time_before,
-                           styles='index')
+                           styles='index',
+                           categories=standard_categories)
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -134,16 +140,19 @@ def create_post():
         post_request = post(f"{api_news}/{api_key}", json={
             "name": form.title.data,
             "content": form.text.data,
-            "tags": form.tags.data,
+            "category": form.category.data,
             "user_id": current_user.id
         }).json()
         if "success" in post_request:
             return redirect('/')
         else:
             return render_template("сreate_post.html", form=form,
-                                   message=post_request["Error"]["message"])
+                                   message=post_request["Error"]["message"],
+                                   categories=", ".join(standard_categories))
     else:
-        return render_template("сreate_post.html", form=form, title="ComNetwork | Создание нового поста")
+        return render_template("сreate_post.html", form=form,
+                               title="ComNetwork | Создание нового поста",
+                               categories=", ".join(standard_categories))
 
 
 @app.route('/edit_post/<int:news_id>', methods=['GET', 'POST'])
@@ -156,19 +165,21 @@ def edit_news(news_id):
             _request = _request["news"]
             form.title.data = _request["name"]
             form.text.data = _request["content"]
-            form.tags.data = _request["tags"]
+            form.category.data = _request["category"]
         else:
             abort(404)
     if form.validate_on_submit():
         _request = get(f"{api_news}/{news_id}&{api_key}").json()["news"]
         if _request["user"]["id"] == current_user.id:
             put(f"{api_news}/{news_id}&{api_key}", json={
-                "name": form.title.data, "content": form.text.data, "tags": form.tags.data
+                "name": form.title.data, "content": form.text.data, "category": form.category.data
             }).json()
             return redirect('/')
         else:
             abort(404)
-    return render_template("сreate_post.html", form=form, title="ComNetwork | Редактирование поста")
+    return render_template("сreate_post.html", form=form,
+                           title="ComNetwork | Редактирование поста",
+                           categories=", ".join(standard_categories))
 
 
 @app.route('/post_delete/<int:news_id>', methods=['GET', 'POST'])
@@ -307,4 +318,5 @@ def edit_user_password(_id):
 
 if __name__ == "__main__":
     db_session.global_init("db/collective_blog.db")
+    main.main()   # Загружаем в бд стандартную информацию
     app.run(port=8080, host='127.0.0.1')

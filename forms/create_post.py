@@ -6,5 +6,5 @@ from wtforms.validators import DataRequired
 class CreatePost(FlaskForm):
     title = StringField("Заглавие", validators=[DataRequired()])
     text = TextAreaField("Описание")
-    tags = StringField("Теги", validators=[DataRequired()])
-    submit = SubmitField('Создать пост')
+    category = StringField("Категория", validators=[DataRequired()])
+    submit = SubmitField('Отправить')

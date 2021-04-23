@@ -16,7 +16,7 @@
             crossorigin="anonymous"></script>
     <style>
         body {
-            background-image: url("static/img/bg.jpg");
+            background-image: url("/static/img/bg.jpg");
         }
     </style>
     {% if title %}
@@ -34,8 +34,7 @@
         </button>
         <div class="collapse navbar-collapse " id="navbarSupportedContent">
             <ul class="navbar-nav mr-4">
-                <li><a class="nav-link" href="#">Посты</a></li>
-                <li><a class="nav-link" href="#">Новые</a></li>
+                <li><a class="nav-link" href="/">Посты</a></li>
                 {% if current_user.is_authenticated %}
                 <li><a class="nav-link" href="{{ url_for('create_post') }}">Написать пост</a></li>
                 <li><a href="/user/{{ current_user.id }}" class="nav-link">{{ current_user.name }}</a></li>
@@ -63,9 +62,10 @@
                 <h4>Menu</h4>
                 <div class="col-md-6">
                     <ul class="pages">
-                        <li><a href="#">Посты</a></li>
-                        <li><a href="#">Новые</a></li>
+                        <li><a href="/">Посты</a></li>
+                        {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('create_post') }}">Написать пост</a></li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>

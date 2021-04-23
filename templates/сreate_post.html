@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 style="margin-top: 70px;">Создание нового поста</h1>
+<h1 style="margin-top: 70px;">Новый пост</h1>
 <form action="" method="post">
     {{ form.hidden_tag() }}
     <p>
@@ -22,9 +22,10 @@
     </p>
     {% endfor %}
     </p>
+    <p>Доступные категории: {{ categories }}</p>
     <p>
-        {{ form.tags.label }}<br>
-        {{ form.tags(class="form-control") }}
+        {{ form.category.label }}<br>
+        {{ form.category(class="form-control") }}
     </p>
     <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
     <div>{{ message }}</div>
