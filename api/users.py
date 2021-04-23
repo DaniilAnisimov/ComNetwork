@@ -60,6 +60,7 @@ put_parser.add_argument('access_level', required=False, type=int)
 
 class UserResource(Resource):
     def get(self, user_id, key):
+        """{user: {'id': , 'name': , 'about': , 'rating': , 'email': , 'date': , "access_level": }}"""
         checking_api_key(key)
         abort_if_user_not_found(user_id)
 
@@ -141,6 +142,7 @@ post_parser.add_argument('password', required=True)
 
 class UserListResource(Resource):
     def get(self, key):
+        """{users: {'id': , 'name': , 'about': , 'rating': , 'email': , 'date': , "access_level": }}"""
         checking_api_key(key)
         session = db_session.create_session()
         users = session.query(User).all()

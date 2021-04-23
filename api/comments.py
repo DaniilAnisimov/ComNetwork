@@ -34,6 +34,8 @@ put_parser.add_argument('banned', required=False, type=bool)
 
 class CommentResource(Resource):
     def get(self, comment_id, key):
+        """{comment: {'id': , 'content': , 'rating': , 'user_id': , 'news_id': , 'date': ,
+                      "user": {"id": , "name": , "email": }}}"""
         checking_api_key(key)
         abort_if_comment_not_found(comment_id)
 
@@ -81,6 +83,7 @@ post_parser.add_argument('news_id', required=True, type=int)
 
 class CommentListResource(Resource):
     def get(self, key):
+        """{comments: {'id': , 'content': , 'rating': , 'user_id': , 'news_id': , 'date': }}"""
         checking_api_key(key)
 
         session = db_session.create_session()

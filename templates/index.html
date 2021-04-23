@@ -72,6 +72,11 @@
             {% for category in categories %}
             <a href="/index/{{ category }}">{{ category }}</a><br>
             {% endfor %}
+            <h2>Топ новостей</h2>
+            {% for news in top %}
+            <a href="/post/{{ news['id'] }}">{{ news['name'] }}</a><br>
+            Рейтинг: {{ news['rating'] }}<br>
+            {% endfor %}
         </div>
 
     </div>

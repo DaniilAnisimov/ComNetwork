@@ -5,8 +5,16 @@
 <br><br><br><br>
 <h2>{{post["name"]}}</h2><br>
 <h3>{{post["content"]}}</h3>
+{% if current_user.is_authenticated %}
+{% if like %}
+<a href="/like/{{ post['id'] }}&{{ current_user.id }}" class="btn btn-danger">Передумал</a>
+{% else %}
+<a href="/like/{{ post['id'] }}&{{ current_user.id }}" class="btn btn-danger">Нравится</a>
+{% endif %}
+{% endif %}
 <p>Автор поста: <a href="/user/{{ post['user']['id'] }}">{{ post["user"]["name"] }}</a>. Дата создания:
     {{ post["date"] }}</p><br>
+{% if current_user.is_authenticated %}
 <form action="" method="post">
     {{ form.hidden_tag() }}
     <p>
@@ -21,6 +29,7 @@
     <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
     <div>{{ message }}</div>
 </form>
+{% endif %}
 {% for comment in post["comments"] %}
 <h3><a href="/user/{{ comment['user']['id'] }}">{{comment["user"]["name"]}}</a></h3>
 <h3>{{comment["user"]["name"]}}</h3>

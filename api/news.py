@@ -34,10 +34,15 @@ put_parser.add_argument('rating', required=False, type=int)
 put_parser.add_argument('content', required=False)
 put_parser.add_argument('category', required=False)
 put_parser.add_argument('banned', required=False, type=bool)
+put_parser.add_argument("who_likes_it", required=False)
 
 
 class NewsResource(Resource):
     def get(self, news_id, key):
+        """{news: {'id':, 'name':, 'rating':, 'content':, 'date':, "who_likes_it":, "category": ,
+                    user: {"id": , "name": , "email": },
+                    comments: {"id": , "content": , "rating": , "date": ,
+                     "user": {"id": , "name": , "email": }}}}"""
         checking_api_key(key)
         abort_if_news_not_found(news_id)
 
@@ -45,7 +50,7 @@ class NewsResource(Resource):
         news = session.query(News).filter(News.id == news_id).first()
         if news.banned:
             return jsonify({"Error": {"message": "Эта новость была забанена"}})
-        information = {'news': news.to_dict(only=('id', 'name', 'rating', 'content', 'date'))}
+        information = {'news': news.to_dict(only=('id', 'name', 'rating', 'content', 'date', "who_likes_it"))}
         user = news.user
         information["news"]["user"] = {"id": user.id, "name": user.name, "email": user.email}
         category = news.category
@@ -81,6 +86,8 @@ class NewsResource(Resource):
                     news.category_id = session.query(Category).filter(Category.name == value).first().id
                 elif key == "banned":
                     news.banned = value
+                elif key == "who_likes_it":
+                    news.who_likes_it = value
         session.commit()
         return jsonify({'success': 'OK'})
 
@@ -107,6 +114,8 @@ post_parser.add_argument('category', required=True)
 
 class NewsListResource(Resource):
     def get(self, key):
+        """{news: {'id':, 'name':, 'rating':, 'content':, 'date':, "who_likes_it":, "category": ,
+                    user: {"id": , "name": , "email": }}}"""
         checking_api_key(key)
 
         session = db_session.create_session()
@@ -115,7 +124,7 @@ class NewsListResource(Resource):
         for item in news:
             if not item.banned:
                 inf = item.to_dict(only=('id', 'name', 'rating',
-                                         'content', 'user_id', 'date'))
+                                         'content', 'user_id', 'date', "who_likes_it"))
                 category = item.category
                 inf["category"] = category.name
                 user = item.user

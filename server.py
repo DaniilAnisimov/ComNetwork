@@ -7,6 +7,7 @@ from flask_restful import Api
 
 from requests import get, post, delete, put
 from api import users, news, comments
+from data.news import News
 
 from forms.user import RegisterForm
 from forms.login import LoginForm
@@ -76,9 +77,14 @@ def load_user(user_id):
 @app.route('/index')
 @app.route('/index/<string:category>')
 def index(category=None):
+    # Получаем список новостей
     list_with_posts = get(f"{api_news}/{api_key}").json()["news"]
+    # Сортируем по категории
     if not (category is None) and category in standard_categories:
         list_with_posts = [_news for _news in list_with_posts if _news["category"] == category]
+    # Выбираем 10 новостей с самыми высокими рейтингами
+    top_10_news = sorted(list_with_posts, key=lambda x: x["rating"], reverse=True)[:10]
+
     today = str(datetime.date.today())
     list_time_to_view = list(
         filter(lambda date: date[:2] == today[5:7] and date[3:] > today[8:] or date[:2] > today[5:7],
@@ -90,7 +96,8 @@ def index(category=None):
                            list_with_posts=list_with_posts,
                            time_before=time_before,
                            styles='index',
-                           categories=standard_categories)
+                           categories=standard_categories,
+                           top=top_10_news)
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -118,6 +125,7 @@ def logout():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
+        # Делаем запрос в api для добавления нового пользователя
         post_request = post(f"{api_users}/{api_key}", json={
             "name": form.name.data,
             "email": form.email.data,
@@ -137,6 +145,7 @@ def register():
 def create_post():
     form = CreatePost()
     if form.validate_on_submit():
+        # Делаем запрос в api для добавления нового поста
         post_request = post(f"{api_news}/{api_key}", json={
             "name": form.title.data,
             "content": form.text.data,
@@ -146,6 +155,7 @@ def create_post():
         if "success" in post_request:
             return redirect('/')
         else:
+            # В случае если api вернул ошибку отправляем сообщение из api на шаблон
             return render_template("сreate_post.html", form=form,
                                    message=post_request["Error"]["message"],
                                    categories=", ".join(standard_categories))
@@ -198,6 +208,40 @@ def save_offers():
     return redirect('/index')
 
 
+# функция которая проверяет, понравилась ли пользователю данная новость (пост = новость)
+def check_like(news_id, user_id):
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == user_id).first()
+    if user:
+        _news = db_sess.query(News).filter(News.id == news_id).first()
+        if _news:
+            return str(user_id) in _news.who_likes_it
+    return abort(404)
+
+
+# Функция которая добавляет/убирает очки рейтинга для данного поста и его владельца
+# Функции like и check_like работают с бд напрямую, т.к это быстрее, чем через api
+@app.route("/like/<int:news_id>&<int:user_id>")
+@login_required
+def like(news_id, user_id):
+    r = check_like(news_id, user_id)
+    db_sess = db_session.create_session()
+    _news = db_sess.query(News).filter(News.id == news_id).first()
+    list_of_people_who_liked_it = list(_news.who_likes_it.split(", "))
+    if r:
+        del list_of_people_who_liked_it[user_id]
+        _news.rating -= 1
+        _news.user.rating -= 1
+    else:
+        list_of_people_who_liked_it += [str(user_id)]
+        _news.rating += 1
+        _news.user.rating += 1
+    _news.who_likes_it = ", ".join(list_of_people_who_liked_it)
+    db_sess.commit()
+    return redirect(f"/post/{news_id}")
+
+
+# Функция показывающая пост и комментарии написанные к нему
 @app.route("/post/<int:id_post>", methods=['GET', 'POST'])
 def __post(id_post):
     form = CommentForm()
@@ -205,11 +249,19 @@ def __post(id_post):
         post(f"{api_comments}/{api_key}", json={
             "content": form.text.data, "user_id": current_user.id, "news_id": id_post
         }).json()
+
         return redirect(f'/post/{id_post}')
+
     _post = get(f"{api_news}/{id_post}&{api_key}").json()["news"]
-    return render_template("post.html", form=form, title="ComNetwork", post=_post)
+
+    if current_user.is_authenticated:
+        return render_template("post.html", form=form, title="ComNetwork",
+                               post=_post, like=check_like(id_post, current_user.id))
+    return render_template("post.html", form=form, title="ComNetwork",
+                           post=_post)
 
 
+# Блокирует пользователя/новость/комментарий, но нужно иметь уровень доступа 2 и выше (1-ый ур.д)
 @app.route('/block_it/<string:_type>&<int:_id>', methods=['GET', 'POST'])
 @login_required
 def block_it(_type, _id):
@@ -232,6 +284,7 @@ def block_it(_type, _id):
             else:
                 abort(400)
 
+            # Отправляем письмо на почту владельца с причиной блокировки
             text = f'{_types["text"]}\n' \
                    f'{form.text.data}\n' \
                    f'Если вы не согласны с блокировкой, напишите ответное письмо.'
@@ -318,5 +371,5 @@ def edit_user_password(_id):
 
 if __name__ == "__main__":
     db_session.global_init("db/collective_blog.db")
-    main.main()   # Загружаем в бд стандартную информацию
+    main.main()  # Загружаем в бд стандартную информацию
     app.run(port=8080, host='127.0.0.1')
