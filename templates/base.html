@@ -38,7 +38,7 @@
                 <li><a class="nav-link" href="#">Новые</a></li>
                 {% if current_user.is_authenticated %}
                 <li><a class="nav-link" href="{{ url_for('create_post') }}">Написать пост</a></li>
-                <li><p class="nav-link">{{ current_user.name }}</p></li>
+                <li><a href="/user/{{ current_user.id }}" class="nav-link">{{ current_user.name }}</a></li>
                 <li><a class="nav-link" href="{{ url_for('logout') }}">Выйти</a></li>
                 {% else %}
                 <li><a class="nav-link" href="{{ url_for('login') }}">Войти</a></li>

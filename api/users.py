@@ -81,7 +81,8 @@ class UserResource(Resource):
 
         # Проверяем данные
         if not (args["email"] is None):
-            if session.query(User).filter(User.email == args["email"]).first():
+            user2 = session.query(User).filter(User.email == args["email"]).first()
+            if user2 and user.id != user2.id:
                 return jsonify({"Error": {"message": "Этот email занят"}})
             if not checking_email(args["email"]):
                 return jsonify({"Error": {"message": "Электронная почта не действительна"}})

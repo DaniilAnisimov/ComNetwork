@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 from flask import Flask, render_template, request, redirect, abort
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_mail import Message, Mail
@@ -13,8 +13,10 @@ from forms.login import LoginForm
 from forms.create_post import CreatePost
 from forms.post import CommentForm
 from forms.block_it import BlockItPost
-import datetime
+from forms.edit_user_data import EditUserData
+from forms.edit_user_password import EditUserPassword
 
+import datetime
 import smtplib
 
 from data import db_session
@@ -149,8 +151,9 @@ def create_post():
 def edit_news(news_id):
     form = CreatePost()
     if request.method == "GET":
-        _request = get(f"{api_news}/{news_id}&{api_key}").json()["news"]
+        _request = get(f"{api_news}/{news_id}&{api_key}").json()
         if "Error" not in _request:
+            _request = _request["news"]
             form.title.data = _request["name"]
             form.text.data = _request["content"]
             form.tags.data = _request["tags"]
@@ -199,7 +202,7 @@ def __post(id_post):
 @app.route('/block_it/<string:_type>&<int:_id>', methods=['GET', 'POST'])
 @login_required
 def block_it(_type, _id):
-    if current_user.access_level == 1 or current_user.access_level == 2:
+    if current_user.is_authenticated and (current_user.access_level == 1 or current_user.access_level == 2):
         form = BlockItPost()
         if form.validate_on_submit():
             _types = {}
@@ -238,6 +241,68 @@ def block_it(_type, _id):
 
             return redirect("/")
         return render_template("block_it.html", form=form, title="ComNetwork")
+
+
+@app.route('/user/<int:_id>')
+def _user(_id):
+    user = get(f"{api_users}/{_id}&{api_key}").json()
+    if "Error" not in user:
+        return render_template("user.html", title="ComNetwork", user=user["user"])
+    else:
+        return render_template("user.html", title="ComNetwork", user={"banned": True})
+
+
+@app.route("/edit_user_data/<int:_id>", methods=['GET', 'POST'])
+def edit_user_data(_id):
+    user = get(f"{api_users}/{_id}&{api_key}").json()
+    if "Error" not in user:
+        user = user["user"]
+        if current_user.is_authenticated and current_user.id == _id:
+            form = EditUserData()
+            if request.method == "POST":
+
+                _request = put(f"{api_users}/{_id}&{api_key}", json={
+                    "email": form.email.data,
+                    "about": form.about.data if form.about.data else ""
+                }).json()
+
+                if "Error" in _request:
+                    return render_template("edit_user_data.html", title="ComNetwork", form=form,
+                                           user=user, message=_request["Error"]["message"])
+                return redirect(f"/user/{_id}")
+            elif request.method == "GET":
+                form.email.data = user["email"]
+                form.about.data = user["about"]
+            return render_template("edit_user_data.html", title="ComNetwork", user=user, form=form)
+        else:
+            abort(401)
+    else:
+        abort(400)
+
+
+@app.route("/edit_user_password/<int:_id>", methods=['GET', 'POST'])
+def edit_user_password(_id):
+    user = get(f"{api_users}/{_id}&{api_key}").json()
+    if "Error" not in user:
+        user = user["user"]
+        if current_user.is_authenticated and current_user.id == _id:
+            form = EditUserPassword()
+            if request.method == "POST":
+
+                _request = put(f"{api_users}/{_id}&{api_key}", json={
+                    "password": form.new_password.data,
+                    "last_password": form.last_password.data
+                }).json()
+
+                if "Error" in _request:
+                    return render_template("/edit_user_password.html", title="ComNetwork", form=form,
+                                           user=user, message=_request["Error"]["message"])
+                return redirect(f"/user/{_id}")
+            return render_template("/edit_user_password.html", title="ComNetwork", form=form, user=user)
+        else:
+            abort(401)
+    else:
+        abort(400)
 
 
 if __name__ == "__main__":

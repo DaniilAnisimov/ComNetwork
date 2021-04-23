@@ -2,9 +2,10 @@
 
 {% block content %}
 {% if not post.banned %}
+<br><br><br><br>
 <h2>{{post["name"]}}</h2><br>
 <h3>{{post["content"]}}</h3>
-<p>Автор поста: {{ post["user"]["name"] }}. Дата создания:
+<p>Автор поста: <a href="/user/{{ post['user']['id'] }}">{{ post["user"]["name"] }}</a>. Дата создания:
     {{ post["date"] }}</p><br>
 <form action="" method="post">
     {{ form.hidden_tag() }}
@@ -21,6 +22,7 @@
     <div>{{ message }}</div>
 </form>
 {% for comment in post["comments"] %}
+<h3><a href="/user/{{ comment['user']['id'] }}">{{comment["user"]["name"]}}</a></h3>
 <h3>{{comment["user"]["name"]}}</h3>
 <p>{{comment["content"]}}</p>
 <p>Время создания: {{comment.date}}</p>
@@ -28,4 +30,5 @@
 {% else %}
 <h2>Данный пост заблокирован</h2>
 {% endif %}
+<br><br><br><br>
 {% endblock %}

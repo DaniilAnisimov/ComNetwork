@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<br><br><br><br>
+
+{% if not user["banned"] %}
+
+<h2>{{ user["name"] }}</h2><br>
+<h3>Немного о себе:</h3>
+<p>{{ user["about"] }}</p>
+<p>Рейтинг: {{ user["rating"] }}</p>
+{% if current_user.id == user["id"] %}
+<p>Электронная почта: {{ user["email"] }}</p>
+{% endif %}
+<p>Дата создания: {{ user["date"] }}</p>
+
+{% if current_user.is_authenticated %}
+<p>
+    {%  if current_user.name == user["name"] %}
+    <a href="/edit_user_data/{{ current_user.id }}" class="btn btn-warning">
+        Изменить данные
+    </a>
+    <a href="/edit_user_password/{{ current_user.id }}" class="btn btn-warning">
+        Изменить пароль
+    </a>
+{% endif %}
+{% if current_user.access_level == 1 or current_user.access_level == 2 %}
+    <a href="/block_it/user&{{ user['id'] }}" class="btn btn-danger">
+        Заблокировать
+    </a>
+    {% endif %}
+</p>
+{% endif %}
+
+{% else %}
+<h2>Данный пост заблокирован</h2>
+
+{% endif %}
+{% endblock %}
