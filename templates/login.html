@@ -21,6 +21,7 @@
                     {{ error }}
                 </div>
             {% endfor %}
+        <a href="/restore_password" class="btn btn-danger">Восстановить пароль</a>
         </p>
         <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
         <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>

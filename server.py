@@ -16,6 +16,7 @@ from forms.post import CommentForm
 from forms.block_it import BlockItPost
 from forms.edit_user_data import EditUserData
 from forms.edit_user_password import EditUserPassword
+from forms.restore_password import RestorePassword
 
 import datetime
 import smtplib
@@ -130,7 +131,8 @@ def register():
             "name": form.name.data,
             "email": form.email.data,
             "about": form.about.data,
-            "password": form.password.data
+            "password": form.password.data,
+            "secret_word": form.secret_word.data
         }).json()
         if "success" in post_request:
             return redirect('/')
@@ -273,11 +275,11 @@ def block_it(_type, _id):
                 _types["api"] = api_news
                 _types["email"] = get(f"{api_news}/{_id}&{api_key}").json()["news"]["user"]["email"]
                 _types["text"] = "Здравствуйте, ваш пост был заблокирован по следующей причине:"
-            elif _types == "user":
+            elif _type == "user":
                 _types["api"] = api_users
                 _types["email"] = get(f"{api_users}/{_id}&{api_key}").json()["email"]
                 _types["text"] = "Здравствуйте, ваш аккаунт был заблокирован по следующей причине:"
-            elif _types == "comment":
+            elif _type == "comment":
                 _types["api"] = api_comments
                 _types["email"] = get(f"{api_comments}/{_id}&{api_key}").json()["comment"]["user"]["email"]
                 _types["text"] = "Здравствуйте, ваше сообщение было заблокирована по следующей причине:"
@@ -308,6 +310,7 @@ def block_it(_type, _id):
 
 
 @app.route('/user/<int:_id>')
+@login_required
 def _user(_id):
     user = get(f"{api_users}/{_id}&{api_key}").json()
     if "Error" not in user:
@@ -317,6 +320,7 @@ def _user(_id):
 
 
 @app.route("/edit_user_data/<int:_id>", methods=['GET', 'POST'])
+@login_required
 def edit_user_data(_id):
     user = get(f"{api_users}/{_id}&{api_key}").json()
     if "Error" not in user:
@@ -345,6 +349,7 @@ def edit_user_data(_id):
 
 
 @app.route("/edit_user_password/<int:_id>", methods=['GET', 'POST'])
+@login_required
 def edit_user_password(_id):
     user = get(f"{api_users}/{_id}&{api_key}").json()
     if "Error" not in user:
@@ -362,11 +367,52 @@ def edit_user_password(_id):
                     return render_template("/edit_user_password.html", title="ComNetwork", form=form,
                                            user=user, message=_request["Error"]["message"])
                 return redirect(f"/user/{_id}")
-            return render_template("/edit_user_password.html", title="ComNetwork", form=form, user=user)
+            return render_template("edit_user_password.html", title="ComNetwork", form=form, user=user)
         else:
             abort(401)
     else:
         abort(400)
+
+
+def create_password():
+    password = []
+    password += list(set([chr(i) for i in range(65, 91)]))[:5]
+    password += list(set([chr(i) for i in range(97, 123)]))[:5]
+    password += list(set([chr(i) for i in range(48, 58)]))[:5]
+    return "".join(set(password))
+
+
+@app.route("/restore_password", methods=['GET', "POST"])
+def restore_password():
+    form = RestorePassword()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        if user is None:
+            return render_template("restore_password.html", title="ComNetwork",
+                                   form=form, message="Пользователь с таким email не зарегистрирован")
+        if form.secret_word.data != user.secret_word:
+            return render_template("restore_password.html", title="ComNetwork",
+                                   form=form, message="Секретное слово неверное")
+        password = create_password()
+        user.set_password(password)
+        db_sess.commit()
+
+        text = f"Ваш новый пароль - {password}"
+
+        _login, password = data["basic_settings"]["MAIL_USERNAME"], data["basic_settings"]["MAIL_PASSWORD"]
+
+        smtp_host = 'smtp.mail.ru'
+        s = smtplib.SMTP(smtp_host, 25, timeout=10)
+        s.set_debuglevel(1)
+        try:
+            s.starttls()
+            s.login(_login, password)
+            s.sendmail(_login, [form.to_email.data], text.encode("utf-8"))
+        finally:
+            s.quit()
+        return redirect("/")
+    return render_template("restore_password.html", form=form, title='ComNetwork | Регистрация')
 
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now())
     banned = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     access_level = sqlalchemy.Column(sqlalchemy.Integer, default=3)
+    secret_word = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=False)
 
     news = orm.relation("News", back_populates="user")
     comments = orm.relation("Comment", back_populates="user")

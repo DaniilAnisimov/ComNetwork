@@ -128,11 +128,13 @@
 
 .navbar-brand {
     margin-left: 1em !important;
+    color: #000;
 }
 
 .nav-link {
    font-size: 18px;
    margin-right: 1em !important;
+   color: #000;
 }
 
 .navbar-collapse {

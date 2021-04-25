@@ -138,6 +138,8 @@ post_parser.add_argument('name', required=True)
 post_parser.add_argument('about', required=True)
 post_parser.add_argument('email', required=True)
 post_parser.add_argument('password', required=True)
+post_parser.add_argument('access_level', required=False, type=int, default=3)
+post_parser.add_argument("secret_word", required=True)
 
 
 class UserListResource(Resource):
@@ -147,7 +149,8 @@ class UserListResource(Resource):
         session = db_session.create_session()
         users = session.query(User).all()
         return jsonify({'users': [item.to_dict(
-            only=('id', 'name', 'about', 'rating', 'email', 'date', "access_level")) for item in users if not item.banned]})
+            only=('id', 'name', 'about', 'rating', 'email', 'date', "access_level"))
+            for item in users if not item.banned]})
 
     def post(self, key):
         checking_api_key(key)
@@ -171,7 +174,9 @@ class UserListResource(Resource):
         user.name = args['name']
         user.about = args['about']
         user.email = args['email']
+        user.access_level = args['access_level']
         user.set_password(args['password'])
+        user.secret_word = args["secret_word"]
         session.add(user)
         session.commit()
         return jsonify({'success': 'OK'})

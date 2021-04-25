@@ -1,0 +1,14 @@
+{
+  "basic_settings": {
+    "SECRET_KEY": "",
+    "MAIL_SERVER": "",
+    "MAIL_PORT": "",
+    "MAIL_USE_TLS": true,
+    "MAIL_USERNAME": "",
+    "MAIL_DEFAULT_SENDER": "",
+    "MAIL_PASSWORD": ""
+  },
+  "api": {
+    "api_key": ""
+  }
+}
