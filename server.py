@@ -108,8 +108,11 @@ def login():
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.email == form.email.data).first()
         if user and user.check_password(form.password.data):
-            login_user(user, remember=form.remember_me.data)
-            return redirect("/")
+            if not user.banned:
+                login_user(user, remember=form.remember_me.data)
+                return redirect("/")
+            return render_template("login.html", message="Данный пользователь заблокирован",
+                                   form=form, title='ComNetwork | Авторизация')
         return render_template("login.html", message="Неправильный логин или пароль",
                                form=form, title='ComNetwork | Авторизация')
     return render_template("login.html", form=form, title='ComNetwork | Авторизация')
@@ -277,7 +280,7 @@ def block_it(_type, _id):
                 _types["text"] = "Здравствуйте, ваш пост был заблокирован по следующей причине:"
             elif _type == "user":
                 _types["api"] = api_users
-                _types["email"] = get(f"{api_users}/{_id}&{api_key}").json()["email"]
+                _types["email"] = get(f"{api_users}/{_id}&{api_key}").json()["user"]["email"]
                 _types["text"] = "Здравствуйте, ваш аккаунт был заблокирован по следующей причине:"
             elif _type == "comment":
                 _types["api"] = api_comments
@@ -391,6 +394,9 @@ def restore_password():
         if user is None:
             return render_template("restore_password.html", title="ComNetwork",
                                    form=form, message="Пользователь с таким email не зарегистрирован")
+        if user.banned:
+            return render_template("restore_password.html", title="ComNetwork",
+                                   form=form, message="Пользователь с таким email заблокирован")
         if form.secret_word.data != user.secret_word:
             return render_template("restore_password.html", title="ComNetwork",
                                    form=form, message="Секретное слово неверное")

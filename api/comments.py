@@ -41,7 +41,7 @@ class CommentResource(Resource):
 
         session = db_session.create_session()
         comment = session.query(Comment).filter(Comment.id == comment_id).first()
-        if comment.banned:
+        if comment.banned or comment.user.banned:
             return jsonify({"message": "This comment was banned"})
         information = {'comment': comment.to_dict(only=('id', 'content', 'rating', 'user_id', 'news_id', 'date'))}
         user = comment.user
@@ -90,7 +90,7 @@ class CommentListResource(Resource):
         comments = session.query(Comment).all()
         return jsonify({'comments': [item.to_dict(
             only=('id', 'content', 'rating', 'user_id', 'news_id', 'date')) for item in comments
-            if not item.banned]})
+            if not item.banned and not item.user.banned]})
 
     def post(self, key):
         checking_api_key(key)

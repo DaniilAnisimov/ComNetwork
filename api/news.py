@@ -48,7 +48,7 @@ class NewsResource(Resource):
 
         session = db_session.create_session()
         news = session.query(News).filter(News.id == news_id).first()
-        if news.banned:
+        if news.banned or news.user.banned:
             return jsonify({"Error": {"message": "Эта новость была забанена"}})
         information = {'news': news.to_dict(only=('id', 'name', 'rating', 'content', 'date', "who_likes_it"))}
         user = news.user
@@ -60,7 +60,7 @@ class NewsResource(Resource):
             "id": comment.id, "content": comment.content, "rating": comment.rating,
             "user": {"id": comment.user_id, "name": comment.user.name, "email": user.email},
             "date": comment.date
-        } for comment in comments if not comment.banned]
+        } for comment in comments if not comment.banned and not comment.user.banned]
         return jsonify(information)
 
     def put(self, news_id, key):
@@ -122,7 +122,7 @@ class NewsListResource(Resource):
         news = session.query(News).all()
         information = []
         for item in news:
-            if not item.banned:
+            if not item.banned and not item.user.banned:
                 inf = item.to_dict(only=('id', 'name', 'rating',
                                          'content', 'user_id', 'date', "who_likes_it"))
                 category = item.category
@@ -139,13 +139,13 @@ class NewsListResource(Resource):
         abort_if_user_not_found(args['user_id'])
 
         session = db_session.create_session()
+        categories = session.query(Category).all()
+        if args['category'] is None or args['category'] not in list(map(lambda x: x.name, categories)):
+            return jsonify({"Error": {"message": "Такая категория не существует"}})
         news = News()
         news.name = args['name']
         news.content = args['content']
         news.user_id = args['user_id']
-        categories = session.query(Category).all()
-        if args['category'] is None or args['category'] not in list(map(lambda x: x.name, categories)):
-            return jsonify({"Error": {"message": "Такая категория не существует"}})
         news.category_id = session.query(Category).filter(Category.name == args["category"]).first().id
         session.add(news)
         session.commit()
